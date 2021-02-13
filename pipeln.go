@@ -73,6 +73,10 @@ func (ln *PipeListenerDialer) DialContext(_ context.Context, network, addr strin
 	return ln.Dial(network, addr)
 }
 
+func (ln *PipeListenerDialer) DialContextAddr(_ context.Context, addr string) (net.Conn, error) {
+	return ln.Dial("", addr)
+}
+
 func New(addr string) *PipeListenerDialer {
 	return &PipeListenerDialer{addr, make(chan net.Conn), make(chan struct{})}
 }
