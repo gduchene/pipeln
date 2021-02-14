@@ -62,10 +62,10 @@ func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 	}
 	s, c := net.Pipe()
 	select {
-	case <-ln.done:
-		return nil, ErrClosed
 	case ln.conns <- s:
 		return c, nil
+	case <-ln.done:
+		return nil, ErrClosed
 	}
 }
 
