@@ -4,13 +4,9 @@ package pipeln
 
 import (
 	"context"
-	"errors"
 	"net"
-)
 
-var (
-	ErrBadAddress = errors.New("bad address")
-	ErrClosed     = errors.New("closed listener")
+	"golang.org/x/sys/unix"
 )
 
 type addr struct {
@@ -34,6 +30,7 @@ type PipeListenerDialer struct {
 	addr  string
 	conns chan net.Conn
 	done  chan struct{}
+	ok    bool
 }
 
 var _ net.Listener = &PipeListenerDialer{}
@@ -43,7 +40,7 @@ func (ln *PipeListenerDialer) Accept() (net.Conn, error) {
 	case conn := <-ln.conns:
 		return conn, nil
 	case <-ln.done:
-		return nil, ErrClosed
+		return nil, unix.EINVAL
 	}
 }
 
@@ -52,20 +49,24 @@ func (ln *PipeListenerDialer) Addr() net.Addr {
 }
 
 func (ln *PipeListenerDialer) Close() error {
+	if !ln.ok {
+		return unix.EINVAL
+	}
 	close(ln.done)
+	ln.ok = false
 	return nil
 }
 
 func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 	if addr != ln.addr {
-		return nil, ErrBadAddress
+		return nil, unix.EINVAL
 	}
 	s, c := net.Pipe()
 	select {
 	case ln.conns <- s:
 		return c, nil
 	case <-ln.done:
-		return nil, ErrClosed
+		return nil, unix.ECONNREFUSED
 	}
 }
 
@@ -78,5 +79,5 @@ func (ln *PipeListenerDialer) DialContextAddr(_ context.Context, addr string) (n
 }
 
 func New(addr string) *PipeListenerDialer {
-	return &PipeListenerDialer{addr, make(chan net.Conn), make(chan struct{})}
+	return &PipeListenerDialer{addr, make(chan net.Conn), make(chan struct{}), true}
 }
