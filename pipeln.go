@@ -9,20 +9,6 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-type addr struct {
-	ln *PipeListenerDialer
-}
-
-var _ net.Addr = addr{}
-
-func (addr) Network() string {
-	return "pipe"
-}
-
-func (a addr) String() string {
-	return "pipe:" + a.ln.addr
-}
-
 // PipeListenerDialer can be used to simulate client-server interaction
 // within the same process.
 type PipeListenerDialer struct {
@@ -89,4 +75,18 @@ func (ln *PipeListenerDialer) DialContextAddr(_ context.Context, addr string) (n
 // made to the given addr.
 func New(addr string) *PipeListenerDialer {
 	return &PipeListenerDialer{addr, make(chan net.Conn), make(chan struct{}), true}
+}
+
+type addr struct {
+	ln *PipeListenerDialer
+}
+
+var _ net.Addr = addr{}
+
+func (addr) Network() string {
+	return "pipe"
+}
+
+func (a addr) String() string {
+	return "pipe:" + a.ln.addr
 }
