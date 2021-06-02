@@ -23,9 +23,8 @@ func (a addr) String() string {
 	return "pipe:" + a.ln.addr
 }
 
-// PipeListener can be used to simulate client-server interaction within
-// the same process. Useful for testing. Somehow the Go standard library
-// provides net.Pipe but no net.PipeListener.
+// PipeListenerDialer can be used to simulate client-server interaction
+// within the same process.
 type PipeListenerDialer struct {
 	addr  string
 	conns chan net.Conn
@@ -35,6 +34,7 @@ type PipeListenerDialer struct {
 
 var _ net.Listener = &PipeListenerDialer{}
 
+// See net.Listener.Accept for more details.
 func (ln *PipeListenerDialer) Accept() (net.Conn, error) {
 	select {
 	case conn := <-ln.conns:
@@ -44,10 +44,12 @@ func (ln *PipeListenerDialer) Accept() (net.Conn, error) {
 	}
 }
 
+// See net.Listener.Addr for more details.
 func (ln *PipeListenerDialer) Addr() net.Addr {
 	return addr{ln}
 }
 
+// See net.Listener.Close for more details.
 func (ln *PipeListenerDialer) Close() error {
 	if !ln.ok {
 		return unix.EINVAL
@@ -57,6 +59,7 @@ func (ln *PipeListenerDialer) Close() error {
 	return nil
 }
 
+// See net.Dialer.Dial for more details.
 func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 	if addr != ln.addr {
 		return nil, unix.EINVAL
@@ -70,14 +73,20 @@ func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 	}
 }
 
+// DialContext is a dummy wrapper around Dial.
 func (ln *PipeListenerDialer) DialContext(_ context.Context, network, addr string) (net.Conn, error) {
 	return ln.Dial(network, addr)
 }
 
+// DialContextAddr is a dummy wrapper around Dial.
+//
+// This function can be passed to grpc.WithContextDialer.
 func (ln *PipeListenerDialer) DialContextAddr(_ context.Context, addr string) (net.Conn, error) {
 	return ln.Dial("", addr)
 }
 
+// New returns a PipeListenerDialer that will only accept connections
+// made to the given addr.
 func New(addr string) *PipeListenerDialer {
 	return &PipeListenerDialer{addr, make(chan net.Conn), make(chan struct{}), true}
 }
