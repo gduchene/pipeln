@@ -2,8 +2,8 @@
 
 syntax = "proto3";
 
-package grpc_testing;
-option go_package = ".;grpc_testing";
+package grpc_test;
+option go_package = ".;grpc_test";
 
 service Echo {
   rpc Echo(EchoRequest) returns (EchoResponse);

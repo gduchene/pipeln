@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: CC0-1.0
 
-package grpc_testing
+package grpc_test
 
 //go:generate protoc --go_out=. --go-grpc_out=. echo.proto
 
