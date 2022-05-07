@@ -2,7 +2,7 @@
 
 package grpc_testing
 
-//go:generate protoc --go_opt=paths=source_relative --go_out=plugins=grpc:. echo.proto
+//go:generate protoc --go_out=. --go-grpc_out=. echo.proto
 
 import (
 	"context"
@@ -17,7 +17,7 @@ import (
 	"go.awhk.org/pipeln"
 )
 
-type impl struct{}
+type impl struct{ UnimplementedEchoServer }
 
 var _ EchoServer = impl{}
 
