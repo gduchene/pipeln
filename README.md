@@ -16,7 +16,7 @@ func TestHTTP(t *testing.T) {
 	srv := http.Server{}
 	go srv.Serve(ln)
 
-	client := http.Client{Transport: &http.Transport{Dial: ln.Dial}}
+	client := http.Client{Transport: &http.Transport{DialContext: ln.DialContext}}
 
 	// ...
 }
