@@ -47,6 +47,11 @@ func (ln *PipeListenerDialer) Close() error {
 
 // See net.Dialer.Dial for more details.
 func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
+	return ln.DialContext(context.Background(), "", addr)
+}
+
+// DialContext is a dummy wrapper around Dial.
+func (ln *PipeListenerDialer) DialContext(ctx context.Context, _, addr string) (net.Conn, error) {
 	if addr != ln.addr {
 		return nil, unix.EINVAL
 	}
@@ -56,19 +61,16 @@ func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 		return c, nil
 	case <-ln.done:
 		return nil, unix.ECONNREFUSED
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
-}
-
-// DialContext is a dummy wrapper around Dial.
-func (ln *PipeListenerDialer) DialContext(_ context.Context, network, addr string) (net.Conn, error) {
-	return ln.Dial(network, addr)
 }
 
 // DialContextAddr is a dummy wrapper around Dial.
 //
 // This function can be passed to grpc.WithContextDialer.
-func (ln *PipeListenerDialer) DialContextAddr(_ context.Context, addr string) (net.Conn, error) {
-	return ln.Dial("", addr)
+func (ln *PipeListenerDialer) DialContextAddr(ctx context.Context, addr string) (net.Conn, error) {
+	return ln.DialContext(ctx, "", addr)
 }
 
 // New returns a PipeListenerDialer that will only accept connections
