@@ -7,14 +7,15 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"golang.org/x/sys/unix"
+
+	"go.awhk.org/core"
 )
 
-func Test(t *testing.T) {
-	ln := New("test:80")
+func Test(s *testing.T) {
+	t := core.T{T: s}
 
+	ln := New("test:80")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/endpoint", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -24,26 +25,26 @@ func Test(t *testing.T) {
 
 	client := http.Client{Transport: &http.Transport{Dial: ln.Dial}}
 
-	t.Run("OK", func(t *testing.T) {
+	t.Run("OK", func(t *core.T) {
 		resp, err := client.Get("http://test/endpoint")
-		require.NoError(t, err)
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		t.AssertErrorIs(nil, err)
+		t.AssertEqual(http.StatusOK, resp.StatusCode)
 	})
 
-	t.Run("Address Mismatch", func(t *testing.T) {
+	t.Run("Address Mismatch", func(t *core.T) {
 		_, err := client.Get("http://other-test/endpoint")
-		assert.ErrorIs(t, err, unix.EINVAL)
+		t.AssertErrorIs(unix.EINVAL, err)
 	})
 
 	srv.Shutdown(context.Background())
 
-	t.Run("Remote Connection Closed", func(t *testing.T) {
+	t.Run("Remote Connection Closed", func(t *core.T) {
 		_, err := client.Get("http://test/endpoint")
-		assert.ErrorIs(t, err, unix.ECONNREFUSED)
+		t.AssertErrorIs(unix.ECONNREFUSED, err)
 	})
 
-	t.Run("Already-closed Listener", func(t *testing.T) {
+	t.Run("Already-closed Listener", func(t *core.T) {
 		srv = http.Server{Handler: mux}
-		assert.ErrorIs(t, srv.Serve(ln), unix.EINVAL)
+		t.AssertErrorIs(unix.EINVAL, srv.Serve(ln))
 	})
 }
