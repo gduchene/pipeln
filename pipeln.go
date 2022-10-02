@@ -5,8 +5,7 @@ package pipeln
 import (
 	"context"
 	"net"
-
-	"golang.org/x/sys/unix"
+	"syscall"
 )
 
 // PipeListenerDialer can be used to simulate client-server interaction
@@ -26,7 +25,7 @@ func (ln *PipeListenerDialer) Accept() (net.Conn, error) {
 	case conn := <-ln.conns:
 		return conn, nil
 	case <-ln.done:
-		return nil, unix.EINVAL
+		return nil, syscall.EINVAL
 	}
 }
 
@@ -38,7 +37,7 @@ func (ln *PipeListenerDialer) Addr() net.Addr {
 // See net.Listener.Close for more details.
 func (ln *PipeListenerDialer) Close() error {
 	if !ln.ok {
-		return unix.EINVAL
+		return syscall.EINVAL
 	}
 	close(ln.done)
 	ln.ok = false
@@ -53,14 +52,14 @@ func (ln *PipeListenerDialer) Dial(_, addr string) (net.Conn, error) {
 // DialContext is a dummy wrapper around Dial.
 func (ln *PipeListenerDialer) DialContext(ctx context.Context, _, addr string) (net.Conn, error) {
 	if addr != ln.addr {
-		return nil, unix.EINVAL
+		return nil, syscall.EINVAL
 	}
 	s, c := net.Pipe()
 	select {
 	case ln.conns <- s:
 		return c, nil
 	case <-ln.done:
-		return nil, unix.ECONNREFUSED
+		return nil, syscall.ECONNREFUSED
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}

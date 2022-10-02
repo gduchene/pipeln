@@ -5,9 +5,8 @@ package pipeln
 import (
 	"context"
 	"net/http"
+	"syscall"
 	"testing"
-
-	"golang.org/x/sys/unix"
 
 	"go.awhk.org/core"
 )
@@ -33,18 +32,18 @@ func Test(s *testing.T) {
 
 	t.Run("Address Mismatch", func(t *core.T) {
 		_, err := client.Get("http://other-test/endpoint")
-		t.AssertErrorIs(unix.EINVAL, err)
+		t.AssertErrorIs(syscall.EINVAL, err)
 	})
 
 	srv.Shutdown(context.Background())
 
 	t.Run("Remote Connection Closed", func(t *core.T) {
 		_, err := client.Get("http://test/endpoint")
-		t.AssertErrorIs(unix.ECONNREFUSED, err)
+		t.AssertErrorIs(syscall.ECONNREFUSED, err)
 	})
 
 	t.Run("Already-closed Listener", func(t *core.T) {
 		srv = http.Server{Handler: mux}
-		t.AssertErrorIs(unix.EINVAL, srv.Serve(ln))
+		t.AssertErrorIs(syscall.EINVAL, srv.Serve(ln))
 	})
 }
