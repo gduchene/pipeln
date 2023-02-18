@@ -1,4 +1,4 @@
-github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
-github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
-go.awhk.org/core v0.2.0 h1:EEzFUh+0okmVdSvdqB1XRm6AsD1hniSeY1wLNHjo+lk=
-go.awhk.org/core v0.2.0/go.mod h1:5C9oWobMcQLGj+rcfvAvSiGrp/vslOD0eUiwYymTaQI=
+github.com/google/go-cmp v0.5.9 h1:O2Tfq5qg4qc4AmwVlvv0oLiVAGB7enBSJ2x2DqQFi38=
+github.com/google/go-cmp v0.5.9/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+go.awhk.org/core v0.5.0 h1:2mcnYfHK6SwdtDBFiHBKh/lvjCUfmkkRnQXkPoZ7nPo=
+go.awhk.org/core v0.5.0/go.mod h1:lOs71woKF5QCNNEFjaACmhEj7U6IEGAFHw0Zo1Fyh50=
