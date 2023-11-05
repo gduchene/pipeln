@@ -4,16 +4,13 @@ package pipeln
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"syscall"
 	"testing"
-
-	"go.awhk.org/core"
 )
 
-func Test(s *testing.T) {
-	t := core.T{T: s}
-
+func Test(t *testing.T) {
 	ln := New("test:80")
 	mux := http.NewServeMux()
 	mux.HandleFunc("/endpoint", func(w http.ResponseWriter, _ *http.Request) {
@@ -24,26 +21,36 @@ func Test(s *testing.T) {
 
 	client := http.Client{Transport: &http.Transport{Dial: ln.Dial}}
 
-	t.Run("OK", func(t *core.T) {
+	t.Run("OK", func(t *testing.T) {
 		resp, err := client.Get("http://test/endpoint")
-		t.AssertErrorIs(nil, err)
-		t.AssertEqual(http.StatusOK, resp.StatusCode)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != http.StatusOK {
+			t.Error(resp.StatusCode)
+		}
 	})
 
-	t.Run("Address Mismatch", func(t *core.T) {
+	t.Run("Address Mismatch", func(t *testing.T) {
 		_, err := client.Get("http://other-test/endpoint")
-		t.AssertErrorIs(syscall.EINVAL, err)
+		if !errors.Is(err, syscall.EINVAL) {
+			t.Fatal(err)
+		}
 	})
 
 	srv.Shutdown(context.Background())
 
-	t.Run("Remote Connection Closed", func(t *core.T) {
+	t.Run("Remote Connection Closed", func(t *testing.T) {
 		_, err := client.Get("http://test/endpoint")
-		t.AssertErrorIs(syscall.ECONNREFUSED, err)
+		if !errors.Is(err, syscall.ECONNREFUSED) {
+			t.Fatal(err)
+		}
 	})
 
-	t.Run("Already-closed Listener", func(t *core.T) {
+	t.Run("Already-closed Listener", func(t *testing.T) {
 		srv = http.Server{Handler: mux}
-		t.AssertErrorIs(syscall.EINVAL, srv.Serve(ln))
+		if err := srv.Serve(ln); !errors.Is(err, syscall.EINVAL) {
+			t.Fatal(err)
+		}
 	})
 }
